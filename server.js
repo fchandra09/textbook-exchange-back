@@ -60,29 +60,12 @@ router.route('/signup')
         if (noVar(req.body.name) || noVar(req.body.email) || noVar(req.body.password)) {
             res.status(500).json({message: 'Name, email, and password are required'});
         } else {
-            res.status(201).json({message: 'Successfully created user', data: {user: req.user.email}});
-            /*User.find({email: req.body.email}, function (err, user) {
-                if (err) {
-                    res.status(500).json({message: 'Something went wrong'});
-                } else if ((user != "" && user != null && user != undefined)) {
-                    res.status(500).json({message: 'This email already exists', data: user});
-                } else {
-                    var newUser = new User();
-                    newUser.name = req.body.name;
-                    newUser.email = req.body.email;
-                    newUser.phone = req.body.phone;
-                    newUser.save(function (err, user) {
-                        if (err) {
-                            res.status(500).json({message: 'Something went wrong', data: err});
-                        }
-                        else {
-                            res.status(201).json({message: 'Successfully created user', data: user});
-                        }
-                    });
-
-                }
-            });*/
+            res.status(201).json({message: 'Successfully registered user', data: {user: req.user.email}});
         }
+    });
+router.route('/login')
+    .post(passport.authenticate('local-login'), function(req, res) {
+        res.status(200).json({message: 'Successfully logged in', data: {user: req.user.email}});
     });
 
 router.route('/users')

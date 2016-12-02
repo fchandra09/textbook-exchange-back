@@ -8,9 +8,6 @@ var campusId = 235;
 //var termId = 394; // Spring 2017
 var termId = 389; // Fall 2016
 
-// Books dictionary - Key: ISBN, Value: book object
-var books = {};
-
 // Batch settings so we do not get banned by the bookstore
 // for sending too many requests in a short amount of time
 var batchSize = 5; // number of departments
@@ -19,12 +16,11 @@ var frequency = 10000; // milliseconds
 
 var imgSrcReplacement = 'no_load_src';
 
-var getBookInfo = function($root, selector, splitValue) {
+var addBookInfo = function($root, selector, splitValue, book, key) {
   let $element = $root.find(selector);
-  let value = null;
 
   if ($element.length) {
-    value = $element.text();
+    let value = $element.text();
 
     if (splitValue) {
       let valueArray = value.split('\xa0');
@@ -32,20 +28,20 @@ var getBookInfo = function($root, selector, splitValue) {
         value = valueArray[1];
       }
     }
-  }
 
-  return value;
+    if (value) {
+      book[key] = value;
+    }
+  }
 }
 
-var getBookImage = function($root) {
+var addBookImage = function($root, book) {
   let $element = $root.find('td.book-cover img');
-  let value = null;
 
   if ($element.length) {
-    value = 'http://www.bookstore.illinois.edu/textbooks/' + $element.get(0).attributes.getNamedItem(imgSrcReplacement).value;
+    let value = 'http://www.bookstore.illinois.edu/textbooks/' + $element.get(0).attributes.getNamedItem(imgSrcReplacement).value;
+    book['image'] = value;
   }
-
-  return value;
 }
 
 var processBooks = function(course, section, htmlText) {
@@ -64,30 +60,39 @@ var processBooks = function(course, section, htmlText) {
     if ($isbnElement.length) {
       let isbn = isbn_expand($isbnElement.text());
 
-      // If book already exists in the dictionary
-      if (books.hasOwnProperty(isbn)) {
-        books[isbn].courses.push(course.name);
-      }
-      else {
-        let book = {
-          title: getBookInfo($(this), 'span.book-title', false),
-          author: getBookInfo($(this), 'span.book-author', false),
-          isbn: isbn,
-          copyrightYear: getBookInfo($(this), 'span.book-copyright', true),
-          publisher: getBookInfo($(this), 'span.book-publisher', true),
-          edition: getBookInfo($(this), 'span.book-edition', true),
-          binding: getBookInfo($(this), 'span.book-binding', true),
-          image: getBookImage($(this)),
-          courses: [course.name]
-        };
+      let book = {
+        isbn: isbn,
+        courses: course.name
+      };
 
-        // Format year
-        if (book.copyrightYear && book.copyrightYear.length === 2) {
-          book.copyrightYear = '20' + book.copyrightYear;
+      addBookInfo($(this), 'span.book-title', false, book, 'title');
+      addBookInfo($(this), 'span.book-author', false, book, 'authors');
+      addBookInfo($(this), 'span.book-copyright', true, book, 'copyrightYear');
+      addBookInfo($(this), 'span.book-publisher', true, book, 'publisher');
+      addBookInfo($(this), 'span.book-edition', true, book, 'edition');
+      addBookInfo($(this), 'span.book-binding', true, book, 'binding');
+      addBookImage($(this), book);
+
+      // Format year
+      if (book.copyrightYear && book.copyrightYear.length === 2) {
+        book.copyrightYear = '20' + book.copyrightYear;
+      }
+
+      // Call Books API
+      $.ajax({
+        url: 'http://fa16-cs498rk-037.cs.illinois.edu:3000/api/books',
+        type: 'POST',
+        async: false,
+        data: book,
+        dataType: 'json',
+        error: function(xmlHttpReq) {
+          if (xmlHttpReq.status !== 304) {
+            console.log('Error in calling Books API');
+            console.log(book);
+            console.log(xmlHttpReq.response);
+          }
         }
-
-        books[isbn] = book;
-      }
+      });
     }
   });
 }
@@ -213,5 +218,4 @@ getDepartments();
 
 setTimeout(function() {
   console.log('Scrapping completed');
-  console.log(books);
 }, (iteration + 1) * frequency);

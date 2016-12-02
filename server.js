@@ -67,6 +67,12 @@ router.route('/login')
     .post(passport.authenticate('local-login'), function(req, res) {
         res.status(200).json({message: 'Successfully logged in', data: {user: req.user.email}});
     });
+router.route('/logout')
+    .get(function(req, res) {
+        req.logOut();
+        res.status(200).json({ message: "Successfully logged out "});
+    });
+
 
 router.route('/users')
     .get(function(req, res) {

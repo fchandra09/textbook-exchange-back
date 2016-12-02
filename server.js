@@ -1,11 +1,11 @@
 // Get the packages we need
 var express = require('express');
+var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
-
-
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
 
 var router = express.Router();
-var bodyParser = require('body-parser');
 var User = require('./models/user');
 var Book = require('./models/book');
 var Post = require('./models/post')
@@ -14,12 +14,14 @@ mongoose.connect('mongodb://user1:password@ds117348.mlab.com:17348/proj');
 
 // Create our Express application
 var app = express();
+var passport = require('passport');
 
-/*var passport = require('passport');
-var expressSession = require('express-session');
-app.use(expressSession({secret: 'mySecretKey'}));
+app.use(session({ secret: 'passport' }));
 app.use(passport.initialize());
-app.use(passport.session());*/
+app.use(passport.session());
+
+require('./auth/passport')(passport);
+
 
 // Use environment defined port or 3000
 var port = process.env.PORT || 3000;
@@ -37,7 +39,7 @@ app.use(allowCrossDomain);
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-
+app.use(cookieParser())
 app.use(bodyParser.json());
 
 // Use routes as a module (see index.js)
@@ -50,6 +52,36 @@ var noVar = function(variable) {
 var noKey = function(obj, key) {
   return !(key in obj);
 };
+
+router.route('/signup')
+    .post(passport.authenticate('local-signup'), function(req, res) {
+        if (noVar(req.body.name) || noVar(req.body.email) || noVar(req.body.password)) {
+            res.status(500).json({message: 'Name, email, and password are required'});
+        } else {
+            res.status(201).json({message: 'Successfully created user', data: {user: req.user.email}});
+            /*User.find({email: req.body.email}, function (err, user) {
+                if (err) {
+                    res.status(500).json({message: 'Something went wrong'});
+                } else if ((user != "" && user != null && user != undefined)) {
+                    res.status(500).json({message: 'This email already exists', data: user});
+                } else {
+                    var newUser = new User();
+                    newUser.name = req.body.name;
+                    newUser.email = req.body.email;
+                    newUser.phone = req.body.phone;
+                    newUser.save(function (err, user) {
+                        if (err) {
+                            res.status(500).json({message: 'Something went wrong', data: err});
+                        }
+                        else {
+                            res.status(201).json({message: 'Successfully created user', data: user});
+                        }
+                    });
+
+                }
+            });*/
+        }
+    });
 
 router.route('/users')
     .get(function(req, res) {

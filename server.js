@@ -4,9 +4,9 @@ var mongoose = require('mongoose');
 var router = express.Router();
 var bodyParser = require('body-parser');
 var User = require('./models/user');
-var Book = require('./models/book');
+var Task = require('./models/task');
 
-mongoose.connect('mongodb://user1:password@ds117348.mlab.com:17348/proj');
+mongoose.connect('mongodb://user1:password@ds155737.mlab.com:55737/cs498');
 
 // Create our Express application
 var app = express();
@@ -92,7 +92,8 @@ router.route('/users')
             var newUser = new User();
             newUser.name = req.body.name;
             newUser.email = req.body.email;
-            newUser.phone = req.body.phone;
+            if (!noKey(req.body, "pendingTasks"))
+              newUser.pendingTasks = req.body.pendingTasks;
             newUser.save(function (err, user) {
               if (err) {
                 res.status(500).json({message: 'Something went wrong', data: err});
@@ -135,7 +136,7 @@ router.route('/users/:id')
           } else {
             user.name = req.body.name;
             user.email = req.body.email;
-            user.phone = req.body.phone;
+            user.pendingTasks = req.body.pendingTasks;
             user.save(function(err, user) {
               if (err) {
                 res.status(500).json({message: 'Something went wrong', data: err});
@@ -169,7 +170,7 @@ router.route('/users/:id')
     });
 
 
-router.route('/books')
+router.route('/tasks')
     .get(function(req, res) {
       req.query.where = noKey(req.query, "where") ? null : JSON.parse(req.query.where.replace(/'/g,'"'));
       req.query.sort = noKey(req.query, "sort") ? null : JSON.parse(req.query.sort);
@@ -179,7 +180,7 @@ router.route('/books')
       req.query.count = noKey(req.query, "count") ? null: req.query.count;
 
       if (req.query.count) {
-        Book.find(req.query.where)
+        Task.find(req.query.where)
             .sort(req.query.sort)
             .select(req.query.select)
             .skip(req.query.skip)
@@ -189,11 +190,11 @@ router.route('/books')
               if (err) {
                 res.status(500).json({message: 'Something went wrong', data: err});
               } else {
-                res.status(200).json({message: 'Successfully retrieved book count', data: count});
+                res.status(200).json({message: 'Successfully retrieved task count', data: count});
               }
             })
       } else {
-        Book.find(req.query.where)
+        Task.find(req.query.where)
             .sort(req.query.sort)
             .select(req.query.select)
             .skip(req.query.skip)
@@ -202,53 +203,33 @@ router.route('/books')
               if (err) {
                 res.status(500).json({message: 'Something went wrong', data: err});
               } else {
-                res.status(200).json({message: 'Successfully retrieved books', data: user, query: req.query});
+                res.status(200).json({message: 'Successfully retrieved tasks', data: user, query: req.query});
               }
             })
       }
     })
     .post(function(req, res) {
-      if (noVar(req.body.isbn)) {
-        res.status(500).json({message: 'ISBN is required'});
+      if (noVar(req.body.name) || noVar(req.body.deadline)) {
+        res.status(500).json({message: 'Name and deadline are required'});
       } else {
-          Book.findOne({'isbn': req.body.isbn}, 'courses', function(err, book) {
-             if (err) {
-                 res.status(500).json({message: 'Something went wrong', data: err});
-             } else if ((book != "" && book != null && book != undefined)) {
-                 if (book.courses.indexOf(req.body.courses) >=0) {
-                     res.status(500).json({message: 'This book already exists', data: err});
-                 } else {
-                     book.courses.push(req.body.courses);
-                     book.save(function (err, book) {
-                         if (err) {
-                             res.status(500).json({message: 'Something went wrong', data: err});
-                         }
-                         else {
-                             res.status(200).json({message: 'Successfully updated course list for book', data: book});
-                         }
-                     });
+        var newTask = new Task();
+        newTask.name = req.body.name;
+        if (!noKey(req.body, "description"))
+          newTask.description = req.body.description;
+        newTask.deadline = req.body.deadline;
+        // completed = auto false
+        if (!noKey(req.body, "assignedUser"))
+          newTask.assignedUser = req.body.assignedUser;
+        if (!noKey(req.body, "assignedUserName"))
+          newTask.assignedUserName = req.body.assignedUserName;
+        // dateCreated = auto
 
-                 }
-             }
-          });
-        var newBook = new Book();
-        newBook.name = req.body.name;
-        newBook.title = req.body.title;
-        newBook.authors = req.body.authors;
-        newBook.isbn = req.body.isbn;
-          newBook.copyrightYear = req.body.copyrightYear;
-          newBook.publisher = req.body.publisher;
-          newBook.edition = req.body.edition;
-          newBook.binding = req.body.binding;
-          newBook.image = req.body.image;
-          newBook.courses.push(req.body.courses);
-
-        newBook.save(function (err, book) {
+        newTask.save(function (err, task) {
           if (err) {
             res.status(500).json({message: 'Something went wrong', data: err});
           }
           else {
-            res.status(201).json({message: 'Successfully created book', data: book});
+            res.status(201).json({message: 'Successfully created task', data: task});
           }
         });
       }
@@ -257,6 +238,72 @@ router.route('/books')
       res.writeHead(200);
       res.end();
     });
+
+router.route('/tasks/:id')
+    .get(function(req, res) {
+      Task.findById(req.params.id, function (err, task) {
+        if (err) {
+          res.status(500).json({message: 'Something went wrong', data: err});
+        } else if (noVar(task)) {
+          res.status(404).json({message: 'This task does not exist'});
+        } else {
+          res.status(200).json({message: 'Successfully retrieved task with id', data: task});
+        }
+      });
+    })
+    .put(function(req, res) {
+      if (noVar(req.body.name) || noVar(req.body.deadline)) {
+        res.status(500).json({message: 'Name and deadline are required'});
+      } else {
+        Task.findById(req.params.id, function (err, task) {
+          if (err) {
+            res.status(500).json({message: 'Something went wrong', data: err});
+          } else if(noVar(task)) {
+            res.status(404).json({message: 'Task not found'});
+          } else {
+            task.name = req.body.name;
+            if (!noKey(req.body, "description"))
+              task.description = req.body.description;
+            task.deadline = req.body.deadline;
+            if (!noKey(req.body, "completed"))
+            task.completed = req.body.completed;
+            if (!noKey(req.body, "assignedUser"))
+              task.assignedUser = req.body.assignedUser;
+            if (!noKey(req.body, "assignedUserName"))
+              task.assignedUserName = req.body.assignedUserName;
+            // dateCreated = auto
+            task.save(function(err, task) {
+              if (err) {
+                res.status(500).json({message: 'Something went wrong', data: err});
+              }
+              else {
+                res.status(200).json({message: 'Successfully updated task', data: task});
+              }
+            });
+          }
+        });
+      }
+    })
+    .delete(function(req, res) {
+      Task.findById(req.params.id, function (err, task) {
+        if (err) {
+          res.status(500).json({message: 'Something went wrong', data: err});
+        } else if(noVar(task)) {
+          res.status(404).json({message: 'Task not found'});
+        } else {
+          var toDelete = {_id: req.params.id};
+          Task.remove(toDelete, function(err) {
+            if (err) {
+              res.status(500).json({message: 'Something went wrong', data: err});
+            }
+            else {
+              res.status(200).json({message: 'Successfully deleted task'});
+            }
+          });
+        }
+      });
+    });
+
 // Start the server
 app.listen(port);
 console.log('Server running on port ' + port);

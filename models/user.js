@@ -5,8 +5,9 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var userSchema = new Schema({
     name: String,
-    email: {type: String, unique: true},
-    phone: String
+    email: String,
+    pendingTasks: [String],
+    dateCreated: {type: Date, default: Date.now}
 });
 
 module.exports = mongoose.model('User', userSchema);

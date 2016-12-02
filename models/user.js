@@ -6,8 +6,7 @@ var Schema = mongoose.Schema;
 var userSchema = new Schema({
     name: String,
     email: String,
-    pendingTasks: [String],
-    dateCreated: {type: Date, default: Date.now}
+    phone: String
 });
 
 module.exports = mongoose.model('User', userSchema);

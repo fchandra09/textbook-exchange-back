@@ -1,22 +1,25 @@
 // Get the packages we need
 var express = require('express');
+var app = express();
 var bodyParser = require('body-parser');
-var mongoose = require('mongoose');
 var cookieParser = require('cookie-parser');
+var mongoose = require('mongoose');
+var passport = require('passport');
 var session = require('express-session');
 
 var router = express.Router();
 var User = require('./models/user');
 var Book = require('./models/book');
-var Post = require('./models/post')
+var Post = require('./models/post');
 
 mongoose.connect('mongodb://user1:password@ds117348.mlab.com:17348/proj');
 
-// Create our Express application
-var app = express();
-var passport = require('passport');
-
-app.use(session({ secret: 'passport' }));
+app.use(cookieParser());
+app.use(bodyParser.json());
+//app.use(cookieParser);
+app.use(session({
+    secret: 'passport'
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -39,8 +42,7 @@ app.use(allowCrossDomain);
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-app.use(cookieParser())
-app.use(bodyParser.json());
+
 
 // Use routes as a module (see index.js)
 require('./routes')(app, router);

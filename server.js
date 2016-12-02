@@ -225,6 +225,8 @@ router.route('/books')
                               res.status(200).json({message: 'Successfully updated book', data: book});
                           }
                       });
+                  } else {
+                      res.status(304).json({message: 'nothing modified',data:[]});
                   }
               } else {
                   var newBook = new Book();

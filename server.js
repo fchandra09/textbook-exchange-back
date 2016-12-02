@@ -226,27 +226,28 @@ router.route('/books')
                           }
                       });
                   }
+              } else {
+                  var newBook = new Book();
+                  newBook.title = req.body.title;
+                  newBook.authors = req.body.authors;
+                  newBook.isbn = req.body.isbn;
+                  newBook.copyrightYear = req.body.copyrightYear;
+                  newBook.publisher = req.body.publisher;
+                  newBook.edition = req.body.edition;
+                  newBook.binding = req.body.binding;
+                  newBook.image = req.body.image;
+                  newBook.courses = [];
+                  newBook.courses.push(req.body.courses);
+                  newBook.save(function (err, book) {
+                      if (err) {
+                          res.status(500).json({message: 'Something went wrong', data: err});
+                      }
+                      else {
+                          res.status(201).json({message: 'Successfully created book', data: book});
+                      }
+                  });
               }
           });
-          var newBook = new Book();
-          newBook.title = req.body.title;
-          newBook.authors = req.body.authors;
-          newBook.isbn = req.body.isbn;
-          newBook.copyrightYear = req.body.copyrightYear;
-          newBook.publisher = req.body.publisher;
-          newBook.edition = req.body.edition;
-          newBook.binding = req.body.binding;
-          newBook.image = req.body.image;
-          newBook.courses = [];
-          newBook.courses.push(req.body.courses);
-          newBook.save(function (err, book) {
-          if (err) {
-            res.status(500).json({message: 'Something went wrong', data: err});
-          }
-          else {
-            res.status(201).json({message: 'Successfully created book', data: book});
-          }
-        });
       }
     })
     .options(function(req, res){

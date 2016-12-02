@@ -10,7 +10,7 @@ var bookSchema = new Schema({
     isbn: {type: String, unique: true},
     copyrightYear: Number,
     publisher: String,
-    edition: Number,
+    edition: String,
     binding: String,
     image: String,
     courses: [String]

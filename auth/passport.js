@@ -3,7 +3,9 @@
  */
 var LocalStrategy = require('passport-local').Strategy;
 var User = require('../models/user');
-
+var noVar = function(variable) {
+    return variable == undefined || variable == "" || variable == null;
+};
 /**
  * Specifies what strategy we'll use
  */
@@ -24,25 +26,27 @@ module.exports = function(passport) {
             passReqToCallback: true
         },
         function(req, email, password, done) {
-            User.findOne({'email' : email}, function(err, user) {
-                if ( err ) {
-                    return done(err);
-                } else if ( user ) {
-                    return done(null, false);
-                } else {
-                    var newUser = new User();
+            if (!noVar(req.body.name)) {
+                User.findOne({'email' : email}, function(err, user) {
+                    if ( err ) {
+                        return done(err);
+                    } else if ( user ) {
+                        return done(null, false);
+                    } else {
+                        var newUser = new User();
+                        newUser.email = email;
+                        newUser.password = newUser.generateHash(password);
+                        newUser.name = req.body.name;
+                        newUser.phone = req.body.phone;
 
-                    newUser.email = email;
-                    newUser.password = newUser.generateHash(password);
-                    newUser.name = req.body.name;
-                    newUser.phone = req.body.phone;
+                        newUser.save(function(err) {
+                            return done(null, newUser);
+                        });
+                    }
 
-                    newUser.save(function(err) {
-                        return done(null, newUser);
-                    });
-                }
+                });
+            }
 
-            });
         }));
 
     passport.use('local-login', new LocalStrategy({

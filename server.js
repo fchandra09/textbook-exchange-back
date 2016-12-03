@@ -334,10 +334,7 @@ router.route('/posts')
         } else {
             var newPost = new Post();
             newPost.condition = req.body.condition;
-            newPost.trades = [];
-            for (var book in eval('('+req.body.trades+')')) {
-                newPost.trades.push(book);
-            }
+            newPost.trades = req.body.trades;
             newPost.price = req.body.price;
             newPost.bookId = req.body.bookId;
             newPost.sellerId = req.body.sellerId;

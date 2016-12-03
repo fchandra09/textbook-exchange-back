@@ -290,6 +290,21 @@ router.route('/books')
       res.end();
     });
 
+router.route('/books/:id')
+    .get(function (req, res) {
+        Book.findById(req.params.id, function (err, book) {
+            if (err) {
+                res.status(500).json({message: "Something went wrong", data:[]});
+            } else {
+                if (book) {
+                    res.json({message: "OK", data: book});
+                } else {
+                    res.status(404).json({message: "Book not found", data:[]});
+                }
+            }
+        })
+    });
+
 router.route('/posts')
     .get(function(req, res) {
         req.query.where = noKey(req.query, "where") ? null : JSON.parse(req.query.where.replace(/'/g,'"'));

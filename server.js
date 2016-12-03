@@ -335,7 +335,7 @@ router.route('/posts')
             var newPost = new Post();
             newPost.condition = req.body.condition;
             newPost.trades = [];
-            for (var book in req.body.trades) {
+            for (var book in JSON.parse(req.body.trades)) {
                 newPost.trades.push(book);
             }
             newPost.price = req.body.price;

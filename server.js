@@ -60,12 +60,12 @@ router.route('/signup')
         if (noVar(req.body.name) || noVar(req.body.email) || noVar(req.body.password)) {
             res.status(500).json({message: 'Name, email, and password are required'});
         } else {
-            res.status(201).json({message: 'Successfully registered user', data: {user: req.user.email}});
+            res.status(201).json({message: 'Successfully registered user', data: {user: req.user.email, _id:req.user._id}});
         }
     });
 router.route('/login')
     .post(passport.authenticate('local-login'), function(req, res) {
-        res.status(200).json({message: 'Successfully logged in', data: {user: req.user.email}});
+        res.status(200).json({message: 'Successfully logged in', data: {user: req.user.email, _id:req.user._id}});
     });
 router.route('/logout')
     .get(function(req, res) {

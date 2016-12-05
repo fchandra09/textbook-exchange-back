@@ -303,6 +303,37 @@ router.route('/books/:id')
                 }
             }
         })
+    })
+    .put(function(req, res) {
+        if (noVar(req.body.isbn)) {
+            res.status(500).json({message: 'ISBN is required'});
+        } else {
+            Book.findById(req.params.id, function (err, book) {
+                if (err) {
+                    res.status(500).json({message: 'Something went wrong', data: err});
+                } else if(noVar(book)) {
+                    res.status(404).json({message: 'Book not found'});
+                } else {
+                    book.title = req.body.title;
+                    book.authors = req.body.authors;
+                    book.isbn = req.body.isbn;
+                    book.copyrightYear = req.body.copyrightYear;
+                    book.publisher = req.body.publisher;
+                    book.edition = req.body.edition;
+                    book.binding = req.body.binding;
+                    book.image = req.body.image;
+                    book.courses = req.body.courses;
+                    book.save(function(err, book) {
+                        if (err) {
+                            res.status(500).json({message: 'Something went wrong', data: err});
+                        }
+                        else {
+                            res.status(200).json({message: 'Successfully updated book', data: book});
+                        }
+                    });
+                }
+            });
+        }
     });
 
 router.route('/posts')

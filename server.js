@@ -378,18 +378,31 @@ router.route('/posts')
         if (noVar(req.body.bookId)) {
             res.status(500).json({message: 'Book ID is required'});
         } else {
-            var newPost = new Post();
-            newPost.condition = req.body.condition;
-            newPost.trades = req.body.trades;
-            newPost.price = req.body.price;
-            newPost.bookId = req.body.bookId;
-            newPost.sellerId = req.body.sellerId;
-            newPost.save(function (err, book) {
+            Book.findById(req.body.bookId, function (err, book) {
                 if (err) {
                     res.status(500).json({message: 'Something went wrong', data: err});
-                }
-                else {
-                    res.status(201).json({message: 'Successfully created post', data: book});
+                } else if(noVar(book)) {
+                    res.status(404).json({message: 'Book not found'});
+                } else {
+                    var newPost = new Post();
+                    newPost.condition = req.body.condition;
+                    newPost.trades = req.body.trades;
+                    newPost.price = req.body.price;
+                    newPost.bookId = req.body.bookId;
+                    newPost.sellerId = req.body.sellerId;
+                    newPost.title = book.title;
+                    newPost.authors = book.authors;
+                    newPost.isbn = book.isbn;
+                    newPost.courses = book.courses;
+                    newPost.image = book.image;
+                    newPost.save(function (err, book) {
+                        if (err) {
+                            res.status(500).json({message: 'Something went wrong', data: err});
+                        }
+                        else {
+                            res.status(201).json({message: 'Successfully created post', data: book});
+                        }
+                    });
                 }
             });
         }
@@ -421,18 +434,31 @@ router.route('/posts/:id')
                 } else if(noVar(post)) {
                     res.status(404).json({message: 'Post not found'});
                 } else {
-                    post.condition = req.body.condition;
-                    post.trades = req.body.trades;
-                    post.price = req.body.price;
-                    post.bookId = req.body.bookId;
-                    post.sellerId = req.body.sellerId;
-                    post.active = req.body.active;
-                    post.save(function(err, post) {
+                    Book.findById(req.body.bookId, function (err, book) {
                         if (err) {
                             res.status(500).json({message: 'Something went wrong', data: err});
-                        }
-                        else {
-                            res.status(200).json({message: 'Successfully updated post', data: post});
+                        } else if(noVar(book)) {
+                            res.status(404).json({message: 'Book not found'});
+                        } else {
+                            post.condition = req.body.condition;
+                            post.trades = req.body.trades;
+                            post.price = req.body.price;
+                            post.bookId = req.body.bookId;
+                            post.sellerId = req.body.sellerId;
+                            post.active = req.body.active;
+                            post.title = book.title;
+                            post.authors = book.authors;
+                            post.isbn = book.isbn;
+                            post.courses = book.courses;
+                            post.image = book.image;
+                            post.save(function(err, post) {
+                                if (err) {
+                                    res.status(500).json({message: 'Something went wrong', data: err});
+                                }
+                                else {
+                                    res.status(200).json({message: 'Successfully updated post', data: post});
+                                }
+                            });
                         }
                     });
                 }

@@ -169,6 +169,7 @@ router.route('/users/:id')
             user.name = req.body.name;
             user.email = req.body.email;
             user.phone = req.body.phone;
+            user.password = req.body.password;
             user.save(function(err, user) {
               if (err) {
                 res.status(500).json({message: 'Something went wrong', data: err});

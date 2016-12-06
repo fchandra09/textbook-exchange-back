@@ -1,8 +1,9 @@
-# Demo server code for MP4
-You should be able to do
-`npm install` and `nodemon server.js`
+# Textbook Exchange (Back-End)
 
-Nodemon does auto-reloading the same way grunt does on the frontend.
+*University of Illinois at Urbana-Champaign  
+The Art of Web Programming (CS498RK) Fall 2016 Final Project*  
 
-You might have to install nodemon on the vagrant machine using
-`npm install -g nodemon`
+## Instructions
+1. `npm install -g nodemon` if nodemon has not been installed on the machine
+2. `npm install`
+3. `nodemon server.js`

@@ -11,7 +11,12 @@ var postSchema = new Schema({
     bookId: String,
     sellerId: String,
     dateCreated: {type: Date, default: Date.now},
-    active: {type: Boolean, default: true}
+    active: {type: Boolean, default: true},
+    title: String,
+    authors: String,
+    isbn: String,
+    courses: [String],
+    image: String
 });
 
 // Export the Mongoose model
